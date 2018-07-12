@@ -73,5 +73,11 @@ respond with a SPID. Update defs.h with your SPID, certificate and the quote sig
     ./client 127.0.0.1 
     ```
 
+## Updating the certificate and key pem file after registration with Intel
+
+Create an empty pem file with the name - "cert_and_key.pem" and put in the certificate that you used to register to Intel developer account and in a new line of this file (cert_and_key.pem) after the certificate, put the key that you used while generating the certificate. If you used openssl to generate the certificate, then the certificate.pem and key.pem files are both created in the same directory.
+
+If you cannot build the project in the real IAS mode and it works only in simulation mode after updating the SPID and creating the cert_and_key.pem file, then you need to go remove the ifdef SIMULATE_IAS block from the code at the beginning in server.cpp file.
+
 ## Contact
 Feel free to write to Gidon Gershinsky (gidon@il.ibm.com) and Eliad Tsfadia (eliad.tsfadia@ibm.com).
