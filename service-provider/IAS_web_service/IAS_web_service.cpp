@@ -27,6 +27,8 @@
 
 using namespace std;
 
+string subscription_key_p = "00000000000000000000000000000000";
+string subscription_key_s = "00000000000000000000000000000000";
 
 static int REQUEST_ID_MAX_LEN = 32;
 static int IASREPORT_SIGNATURE_MAX_LEN = 2000;
@@ -134,45 +136,98 @@ bool init_ias_web_service(ias_web_service_t &ias_web_service,
 }
 
 
+bool send_to_ias_sig_rl(CURL *curl,
+		string url,
+		IAS type,
+		string payload,
+		struct curl_slist *headers,
+		ias_report_container_t *ias_report_container,
+		ias_report_header_t *report_header) {
+
+	CURLcode res = CURLE_OK;
+
+	string subscriptionKeyHeader = "Ocp-Apim-Subscription-Key: ";
+	subscriptionKeyHeader.append(subscription_key_s);
+	
+	if((headers = curl_slist_append(headers, subscriptionKeyHeader.c_str())) == NULL)
+		return 0;
+
+
+	if (headers) {
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+		//curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload.c_str());
+	}
+
+	ias_report_container->p_report = (char*) malloc(1);
+	if (NULL == ias_report_container->p_report) {
+		printf("ERROR: failed to allocate 1 byte when sending to IAS\n");
+		return false;
+	}
+	ias_report_container->size = 0;
+
+	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, ias_report_header_parser);
+	curl_easy_setopt(curl, CURLOPT_HEADERDATA, report_header);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ias_report_body_handler);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, ias_report_container);
+	
+	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+
+	res = curl_easy_perform(curl);
+	if (res != 0) {
+		printf("ERROR: curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		free(ias_report_container->p_report);
+		ias_report_container->p_report = NULL;
+		return false;
+	}
+
+	return true;
+}
+
 
 bool send_to_ias(CURL *curl,
-               string url,
-               IAS type,
-               string payload,
-               struct curl_slist *headers,
-               ias_report_container_t *ias_report_container,
-               ias_report_header_t *report_header) {
+		string url,
+		IAS type,
+		string payload,
+		struct curl_slist *headers,
+		ias_report_container_t *ias_report_container,
+		ias_report_header_t *report_header) {
 
-    CURLcode res = CURLE_OK;
+	CURLcode res = CURLE_OK;
 
-    curl_easy_setopt( curl, CURLOPT_URL, url.c_str());
+	string subscriptionKeyHeader = "Ocp-Apim-Subscription-Key: ";
+	subscriptionKeyHeader.append(subscription_key_s);
+	
+	if((headers = curl_slist_append(headers, subscriptionKeyHeader.c_str())) == NULL)
+		return 0;
 
-    if (headers) {
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload.c_str());
-    }
+	if (headers) {
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload.c_str());
+	}
 
-    ias_report_container->p_report = (char*) malloc(1);
-    if (NULL == ias_report_container->p_report) {
-        printf("ERROR: failed to allocate 1 byte when sending to IAS\n");
-        return false;
-    }
-    ias_report_container->size = 0;
+	ias_report_container->p_report = (char*) malloc(1);
+	if (NULL == ias_report_container->p_report) {
+		printf("ERROR: failed to allocate 1 byte when sending to IAS\n");
+		return false;
+	}
+	ias_report_container->size = 0;
 
-    curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, ias_report_header_parser);
-    curl_easy_setopt(curl, CURLOPT_HEADERDATA, report_header);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ias_report_body_handler);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, ias_report_container);
+	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, ias_report_header_parser);
+	curl_easy_setopt(curl, CURLOPT_HEADERDATA, report_header);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ias_report_body_handler);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, ias_report_container);
+	
+	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
-    res = curl_easy_perform(curl);
-    if (res != CURLE_OK) {
-        printf("ERROR: curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-        free(ias_report_container->p_report);
-        ias_report_container->p_report = NULL;
-        return false;
-    }
+	res = curl_easy_perform(curl);
+	if (res != 0) {
+		printf("ERROR: curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		free(ias_report_container->p_report);
+		ias_report_container->p_report = NULL;
+		return false;
+	}
 
-    return true;
+	return true;
 }
 
 
@@ -203,7 +258,7 @@ bool get_sig_rl(const ias_web_service_t &ias_web_service,
 
     string url = ias_web_service.url + "sigrl/" + gid_str;
 
-    if (!send_to_ias(ias_web_service.curl,
+    if (!send_to_ias_sig_rl(ias_web_service.curl,
                 url,
                 IAS::sigrl,
                 "",
