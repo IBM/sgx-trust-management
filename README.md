@@ -23,6 +23,7 @@ Trust Management Framework can run in either real or simulated IAS mode. In the 
 	- sudo apt-get install libcurl4-openssl-dev
 * In order to run the code in a real IAS mode, create a [developer account](https://software.intel.com/en-us/sgx). After the registration with a certificate (can be self-signed for development purposes), Intel will
 respond with a SPID. Update defs.h with your SPID, certificate and the quote signing type.
+* Following Revision 5 of Intel IAS API version 3, subscription keys are required to be sent in header of SigRL request. You can get yours [here](https://api.portal.trustedservices.intel.com/). After getting the keys, update defs.h with your latest SPID and put the keys global vars `subscription_key_p` and `subscription_key_p` in IAS_web_service.cpp with your primary and secondary subscription keys, respectively.
 
 ## Build
 * In order to build in a simulated IAS mode, run "make SIMULATE_IAS=1".
