@@ -26,7 +26,8 @@
 #define SPID                 {{0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0A,0x0B,0x0C,0x0D,0x0E,0x0F}}
 #define QUOTE_SIGN_TYPE        SGX_LINKABLE_SIGNATURE
 
-#define IAS_URL     "https://test-as.sgx.trustedservices.intel.com:443/attestation/sgx/v2/"
+#define IAS_URL     "https://api.trustedservices.intel.com/sgx/dev/attestation/v3/"
+//#define IAS_URL     "https://test-as.sgx.trustedservices.intel.com:443/attestation/sgx/v2/"
 
 #define SP_AS_PORT_DEFAULT    48023
 #define SP_RS_PORT_DEFAULT    48033
